@@ -3,63 +3,146 @@
 
 {% block content %}
 <style>
-  body { background:#f4f6fa; overflow-x:hidden; }
-  .layout{ display:flex; min-height:100vh; }
-  .sidebar{
-    width:240px; background:linear-gradient(180deg,#00205B,#001540);
-    color:#fff; display:flex; flex-direction:column; justify-content:space-between;
-    padding:1.5rem 1rem; position:fixed; left:0; top:0; bottom:0; transition:transform .3s;
+  :root {
+    --blue:#00205B;
+    --darkblue:#001540;
+    --lightblue:#f0f4ff;
+    --accent:#00b4d8;
+    --success:#10B981;
   }
-  .sidebar h3{ font-size:1.1rem; text-align:center; margin-bottom:2rem; }
-  .sidebar a{ color:#fff; text-decoration:none; display:block; padding:.6rem 1rem; border-radius:.5rem; margin-bottom:.3rem; transition:background .2s; }
-  .sidebar a:hover,.sidebar a.active{ background:rgba(255,255,255,.15); }
-  .sidebar-footer small{ color:#ccc; text-align:center; display:block; }
-  .main{ flex:1; margin-left:240px; padding:2rem; }
-  .welcome{
-    background:#fff; border-radius:16px; padding:1.25rem 1.5rem;
-    box-shadow:0 4px 15px rgba(0,0,0,.07); text-align:center; font-weight:600;
+
+  body { background:linear-gradient(135deg,#eef2ff,#f8fafc); overflow-x:hidden; }
+  .main {
+    margin-left:240px;
+    padding:2rem;
+    min-height:100vh;
   }
-  .card-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.25rem; margin-top:2rem; }
-  .dash-card{
-    background:#fff; border-radius:16px; padding:1.5rem; text-align:center;
-    box-shadow:0 4px 15px rgba(0,0,0,.07); transition:transform .2s, box-shadow .2s;
+
+  /* WELCOME CARD */
+  .welcome {
+    background:linear-gradient(135deg,var(--blue),var(--darkblue));
+    border-radius:18px;
+    padding:2.2rem 2rem;
+    color:#fff;
+    text-align:center;
+    box-shadow:0 10px 25px rgba(0,0,0,0.15);
+    position:relative;
+    overflow:hidden;
   }
-  .dash-card:hover{ transform:translateY(-4px); box-shadow:0 8px 20px rgba(0,0,0,.1); }
-  .dash-card h5{ color:#00205B; font-weight:700; margin-bottom:.75rem; }
-  .dash-card p{ color:#6b7280; font-size:.95rem; min-height:3rem; }
-  .dash-card a{ display:inline-block; margin-top:.5rem; background:#00205B; color:#fff; padding:.5rem 1rem; border-radius:8px; font-weight:600; text-decoration:none; }
-  .dash-card a:hover{ background:#001b4a; }
+  .welcome::after {
+    content:"";
+    position:absolute;
+    right:-80px;top:-60px;
+    width:200px;height:200px;
+    background:rgba(255,255,255,0.07);
+    border-radius:50%;
+  }
+  .welcome h2 {
+    font-weight:700;
+    font-size:1.8rem;
+  }
+  .welcome p { color:#dbeafe; margin-top:.4rem; }
+
+  /* GRID */
+  .card-grid {
+    margin-top:2rem;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:1.5rem;
+  }
+
+  /* DASHBOARD CARDS */
+  .dash-card {
+    background:#fff;
+    border-radius:20px;
+    padding:1.8rem 1.5rem;
+    box-shadow:0 8px 20px rgba(0,0,0,0.07);
+    text-align:center;
+    transition:all .25s ease;
+    position:relative;
+  }
+  .dash-card:hover {
+    transform:translateY(-6px);
+    box-shadow:0 12px 28px rgba(0,0,0,0.1);
+  }
+  .dash-icon {
+    font-size:2.8rem;
+    color:var(--blue);
+    margin-bottom:1rem;
+  }
+  .dash-card h5 {
+    color:var(--blue);
+    font-weight:700;
+    margin-bottom:.5rem;
+  }
+  .dash-card p {
+    color:#6b7280;
+    font-size:.95rem;
+    min-height:3rem;
+  }
+  .dash-card a {
+    display:inline-block;
+    background:var(--blue);
+    color:#fff;
+    padding:.6rem 1.2rem;
+    border-radius:10px;
+    font-weight:600;
+    text-decoration:none;
+    transition:background .2s;
+  }
+  .dash-card a:hover {
+    background:var(--darkblue);
+  }
+
+  /* PROFILE & LOGOUT */
+  .sidebar .profile-link, .sidebar .logout-link {
+    background:rgba(255,255,255,0.1);
+    margin-top:.8rem;
+    border-radius:.5rem;
+  }
+  .sidebar .profile-link:hover,
+  .sidebar .logout-link:hover {
+    background:rgba(255,255,255,0.2);
+  }
+
+  @media(max-width:992px){
+    .main{margin-left:0;padding:1.5rem;}
+  }
 </style>
 
-<div class="layout">
-  <div class="sidebar">
-    <div>
-      <h3>📚 UniEduNote</h3>
-      <a href="{% url 'dashboard' %}" class="active">🏠 Ana Sayfa</a>
-      <a href="{% url 'note_list' %}">🔍 Notları Keşfet</a>
-      <a href="{% url 'upload_note' %}">⬆️ Not Yükle</a>
-    </div>
-    <div class="sidebar-footer"><small>© 2025 UniEduNote</small></div>
+<div class="main">
+  <div class="welcome">
+    <h2>🎓 Hoş geldin, {{ user.username }}!</h2>
+    <p>Bugün bilgi paylaşarak katkıda bulunmaya hazır mısın?</p>
   </div>
 
-  <div class="main">
-    <div class="welcome">
-      🎉 Hoş geldiniz, <span class="text-primary">{{ user.username }}</span>!
-      <div class="text-muted mt-1">Ne yapmak istersiniz?</div>
+  <div class="card-grid">
+    <div class="dash-card">
+      <div class="dash-icon">📤</div>
+      <h5>Not Yükle</h5>
+      <p>Ders notlarını paylaş, diğer öğrencilere destek ol.</p>
+      <a href="{% url 'upload_note' %}">Yüklemeye Başla</a>
     </div>
 
-    <div class="card-grid">
-      <div class="dash-card">
-        <h5>📤 Not Yükle</h5>
-        <p>Yeni bir ders notu, ödev veya sınav materyali paylaş.</p>
-        <a href="{% url 'upload_note' %}">Yüklemeye Başla</a>
-      </div>
+    <div class="dash-card">
+      <div class="dash-icon">🔍</div>
+      <h5>Notları Keşfet</h5>
+      <p>Binlerce not arasında arama yap, istediğini indir.</p>
+      <a href="{% url 'note_list' %}">Keşfet</a>
+    </div>
 
-      <div class="dash-card">
-        <h5>🔍 Notları Keşfet</h5>
-        <p>Farklı üniversite ve bölümlerden yüklenmiş notları keşfet.</p>
-        <a href="{% url 'note_list' %}">Keşfet</a>
-      </div>
+    <div class="dash-card">
+      <div class="dash-icon">👤</div>
+      <h5>Profilim</h5>
+      <p>Kendi yüklemelerini ve bilgilerini görüntüle.</p>
+      <a href="{% url 'profile' %}">Profili Aç</a>
+    </div>
+
+    <div class="dash-card">
+      <div class="dash-icon">🚪</div>
+      <h5>Çıkış Yap</h5>
+      <p>Görüşmek üzere, tekrar bekleriz!</p>
+      <a href="{% url 'logout' %}">Çıkış</a>
     </div>
   </div>
 </div>

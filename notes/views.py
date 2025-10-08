@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.db.models import Q
+from django.db.models import Q,F
 from .models import Note, Department, Semester, Course, University
 from .forms import NoteUploadForm, NoteFilterForm
 from django.http import JsonResponse, FileResponse # FileResponse'u ekle
@@ -10,31 +10,45 @@ from django.contrib import messages
 def home_page(request):
     return render(request, 'notes/home.html')
 
-
-@login_required  # Sadece giriş yapan kullanıcılar indirebilir
+@login_required
 def download_note(request, pk):
-    # 1. Not nesnesini al
     note = get_object_or_404(Note, pk=pk)
 
-    # 2. Dosya yolunu al (Django'nun FileField özelliği ile)
+    # YENİ EKLENEN KISIM: İndirme Sayacını Artırma
+    # F object'i, veritabanı seviyesinde işlem yapılmasını sağlar,
+    # bu da race condition'ları (eşzamanlılık sorunlarını) engeller.
+    Note.objects.filter(pk=pk).update(download_count=F('download_count') + 1)
+
     file_path = note.file.path
 
-    # 3. Dosyanın sunucuda varlığını kontrol et (olası hatalara karşı)
     if not os.path.exists(file_path):
-        # Dosya bulunamazsa notun detay sayfasına yönlendirilebilir
         messages.error(request, "İndirilmeye çalışılan dosya bulunamadı.")
         return redirect('note_detail', pk=pk)
 
-        # 4. FileResponse ile dosyayı güvenli bir şekilde gönder
-    # as_attachment=True: Tarayıcıya dosyayı indirmesini söyler
-    # filename: Kullanıcının göreceği dosya adını belirler
     response = FileResponse(
-        open(file_path, 'rb'),  # Dosyayı binary (ikilik) modda aç
+        open(file_path, 'rb'),
         as_attachment=True,
-        filename=os.path.basename(file_path)  # Dosya adını kullan
+        filename=os.path.basename(file_path)
     )
 
     return response
+
+
+@login_required
+def dashboard_view(request):
+    # Sadece giriş yapan kullanıcının yüklediği notları çek
+    notes_queryset = Note.objects.filter(uploader=request.user).select_related(
+        'course__semester__department__university',
+        'uploader'
+    ).order_by('-upload_date')
+
+    context = {
+        'notes': notes_queryset,
+        'note_count': notes_queryset.count(),
+        'title': 'Kişisel Yönetim Paneli',
+    }
+    return render(request, 'notes/dashboard.html', context)
+
 
 
 @login_required

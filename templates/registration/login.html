@@ -1,0 +1,33 @@
+{% extends "notes/base.html" %}
+{% block title %}Giriş Yap{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width:420px;">
+  <div class="card shadow-sm border-0 rounded-4">
+    <div class="card-body">
+      <h3 class="text-center text-primary mb-4">🔐 Giriş Yap</h3>
+
+      {% if form.errors %}
+        <div class="alert alert-danger">Kullanıcı adı veya şifre hatalı.</div>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="id_username" class="form-label">Kullanıcı Adı</label>
+          {{ form.username }}
+        </div>
+        <div class="mb-3">
+          <label for="id_password" class="form-label">Şifre</label>
+          {{ form.password }}
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Giriş Yap</button>
+      </form>
+
+      <div class="text-center mt-3">
+        <a href="/">Ana Sayfaya Dön</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,156 @@
+{% extends "notes/base.html" %}
+{% block title %}Kullanıcı Profili{% endblock %}
+
+{% block content %}
+<style>
+  :root {
+    --blue:#00205B;
+    --darkblue:#001540;
+    --lightblue:#f0f4ff;
+    --success:#10B981;
+    --accent:#00b4d8;
+  }
+  body { background:linear-gradient(135deg,#eef2ff,#f8fafc); }
+
+  .profile-container {
+    max-width:900px;
+    margin:auto;
+    margin-top:2rem;
+  }
+
+  .profile-header {
+    background:linear-gradient(135deg,var(--blue),var(--darkblue));
+    color:#fff;
+    border-radius:18px;
+    padding:2rem 2.5rem;
+    text-align:center;
+    box-shadow:0 8px 25px rgba(0,0,0,0.15);
+    position:relative;
+    overflow:hidden;
+  }
+  .profile-header::after {
+    content:"";
+    position:absolute;
+    right:-80px;top:-60px;
+    width:200px;height:200px;
+    background:rgba(255,255,255,0.07);
+    border-radius:50%;
+  }
+  .profile-header h2 {
+    font-weight:700;
+    font-size:1.8rem;
+  }
+  .profile-header p {
+    color:#dbeafe;
+    margin-bottom:.5rem;
+  }
+
+  .profile-section {
+    background:#fff;
+    border-radius:16px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.08);
+    padding:2rem;
+    margin-top:2rem;
+  }
+  .profile-section h5 {
+    color:var(--blue);
+    font-weight:700;
+    margin-bottom:1.2rem;
+  }
+  .profile-section p {
+    color:#374151;
+    margin-bottom:.5rem;
+  }
+  .btn-change {
+    background:var(--blue);
+    color:#fff;
+    font-weight:600;
+    border:none;
+    border-radius:10px;
+    padding:.5rem 1.2rem;
+    transition:background .2s;
+  }
+  .btn-change:hover {
+    background:var(--darkblue);
+  }
+
+  /* Stats */
+  .stats-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:1rem;
+  }
+  .stat-card {
+    background:var(--lightblue);
+    border-radius:14px;
+    text-align:center;
+    padding:1.5rem;
+    box-shadow:0 4px 10px rgba(0,0,0,0.05);
+    transition:transform .2s;
+  }
+  .stat-card:hover {
+    transform:translateY(-4px);
+  }
+  .stat-card h3 {
+    font-size:2rem;
+    color:var(--blue);
+    margin-bottom:.3rem;
+  }
+  .stat-card p {
+    color:#6b7280;
+    margin:0;
+    font-size:.95rem;
+  }
+
+  .back-btn {
+    display:block;
+    text-align:center;
+    background:var(--success);
+    color:#fff;
+    padding:.7rem 1rem;
+    font-weight:600;
+    border-radius:10px;
+    text-decoration:none;
+    margin-top:2rem;
+  }
+  .back-btn:hover {
+    background:#0e9f75;
+  }
+
+  @media(max-width:768px){
+    .profile-section{padding:1.5rem;}
+  }
+</style>
+
+<div class="profile-container">
+  <div class="profile-header">
+    <h2>👋 Merhaba, {{ user.username }}!</h2>
+    <p>Üniversite yolculuğunda seninle olmaktan mutluyuz 🎓</p>
+    <small>Hesap oluşturulma tarihi: {{ user.date_joined|date:"d F Y" }}</small>
+  </div>
+
+  <div class="profile-section">
+    <h5>👤 Kişisel Bilgiler</h5>
+    <p><strong>Kullanıcı Adı:</strong> {{ user.username }}</p>
+    <p><strong>E-posta:</strong> {{ user.email|default:"Belirtilmemiş" }}</p>
+
+    <a href="{% url 'password_change' %}" class="btn-change mt-3">🔑 Parolayı Değiştir</a>
+  </div>
+
+  <div class="profile-section">
+    <h5>📊 İstatistikler</h5>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>{{ user_notes_count }}</h3>
+        <p>Yüklenen Not Sayısı</p>
+      </div>
+      <div class="stat-card">
+        <h3>...</h3>
+        <p>Toplam İndirme Sayısı</p>
+      </div>
+    </div>
+
+    <a href="{% url 'dashboard' %}" class="back-btn">📚 Yüklediğim Notları Gör</a>
+  </div>
+</div>
+{% endblock %}

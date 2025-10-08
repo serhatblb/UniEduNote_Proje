@@ -70,6 +70,9 @@
         <span>{{ note.course.code }} - {{ note.course.name }}</span>
         <span>{{ note.course.semester.department.university.name }}</span>
         <span>{{ note.course.semester.department.name }}</span>
+          <span class="badge bg-success">
+        ⬇️ {{ note.download_count }} İndirme
+    </span>
       </div>
 
       <p class="desc">{{ note.description }}</p>
