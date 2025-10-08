@@ -35,6 +35,105 @@ def download_note(request, pk):
     )
 
     return response
+
+
+@login_required
+def delete_note(request, pk):
+    note = get_object_or_404(Note, pk=pk)
+
+    # Güvenlik Kontrolü: Sadece notu yükleyen silebilir
+    if note.uploader != request.user:
+        messages.error(request, "Bu notu silme yetkiniz yok.")
+        return redirect('note_detail', pk=pk)
+
+    if request.method == 'POST':
+        # Dosyayı sunucudan sil (isteğe bağlı ama önerilir)
+        note.file.delete(save=False)
+
+        # Veritabanı kaydını sil
+        note.delete()
+
+        messages.success(request, f"'{note.title}' başlıklı notunuz başarıyla silindi.")
+        return redirect('dashboard')  # Not silindikten sonra dashboard'a yönlendir
+
+    # GET metodu ile gelinirse bir onay sayfası gösterebiliriz
+    # Ancak basit tutmak için, direkt POST metoduyla silme yapacağız.
+    # Yine de onay için bir template kullanmak daha iyi bir kullanıcı deneyimi sağlar.
+    context = {
+        'note': note,
+        'title': f"{note.title} Silme Onayı"
+    }
+    return render(request, 'notes/note_confirm_delete.html', context)
+
+
+@login_required
+def edit_note(request, pk):
+    note = get_object_or_404(Note, pk=pk)
+
+    # Güvenlik Kontrolü: Sadece notu yükleyen düzenleyebilir
+    if note.uploader != request.user:
+        messages.error(request, "Bu notu düzenleme yetkiniz yok.")
+        return redirect('note_detail', pk=pk)
+
+    # Var olan notu form örneği olarak geçiriyoruz (instance=note)
+    # request.FILES'ı sadece dosya değişirse işlemek için ekliyoruz
+    form = NoteUploadForm(request.POST or None, request.FILES or None, instance=note)
+
+    # Dosya filtresi alanlarının doğru varsayılan değerleri göstermesi için
+    # Formu manuel olarak güncelliyoruz.
+    if request.method == 'GET' or 'university' not in request.POST:
+        # Notun bağlı olduğu Üniversite, Bölüm ve Dönem'i al
+        current_semester = note.course.semester
+        current_department = current_semester.department
+        current_university = current_department.university
+
+        # Form alanlarını o anki değerlerle doldur
+        form.fields['university'].initial = current_university.pk
+        form.fields['department'].queryset = Department.objects.filter(university=current_university).order_by('name')
+        form.fields['department'].initial = current_department.pk
+        form.fields['semester'].queryset = Semester.objects.filter(department=current_department).order_by('name')
+        form.fields['semester'].initial = current_semester.pk
+        form.fields['course'].queryset = Course.objects.filter(semester=current_semester).order_by('code')
+
+    # --- AJAX'lı filtreleme mantığı (POST veya AJAX ile dinamik yüklemeler) ---
+    # Bu kısım, upload_note view'indeki ile aynıdır ve form gönderildiğinde
+    # veya AJAX ile yeni bir seçim yapıldığında çalışır.
+    if 'university' in request.POST:
+        try:
+            # Aynı zamanda formun veri doğruluğunu da kontrol ederiz.
+            university_id = int(request.POST.get('university'))
+            form.fields['department'].queryset = Department.objects.filter(university_id=university_id).order_by('name')
+        except (ValueError, TypeError):
+            pass
+
+    if 'department' in request.POST:
+        try:
+            department_id = int(request.POST.get('department'))
+            form.fields['semester'].queryset = Semester.objects.filter(department_id=department_id).order_by('name')
+        except (ValueError, TypeError):
+            pass
+
+    if 'semester' in request.POST:
+        try:
+            semester_id = int(request.POST.get('semester'))
+            form.fields['course'].queryset = Course.objects.filter(semester_id=semester_id).order_by('code')
+        except (ValueError, TypeError):
+            pass
+    # --- AJAX/Filtreleme Mantığı Bitişi ---
+
+    if form.is_valid():
+        # Formu kaydet (bu, var olan 'note' nesnesini günceller)
+        form.save()
+        messages.success(request, f"'{note.title}' başlıklı notunuz başarıyla güncellendi.")
+        return redirect('note_detail', pk=note.pk)
+
+    context = {
+        'form': form,
+        'is_editing': True,  # Template'e düzenleme modunda olduğumuzu bildirir
+        'note': note,
+        'title': f"{note.title} Düzenleniyor"
+    }
+    return render(request, 'notes/upload_note.html', context)
 @login_required
 def dashboard_view(request):
     return render(request, 'notes/dashboard.html')

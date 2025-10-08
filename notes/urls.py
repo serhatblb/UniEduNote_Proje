@@ -10,6 +10,8 @@ urlpatterns = [
     path('notes/', views.note_list_view, name='note_list'),
     path('notes/<int:pk>/', views.note_detail_view, name='note_detail'),
     path('notes/<int:pk>/download/', views.download_note, name='download_note'),
+    path('notes/<int:pk>/delete/', views.delete_note, name='delete_note'),
+    path('notes/<int:pk>/edit/', views.edit_note, name='edit_note'),
 
     # AJAX Adresleri (Yükleme ve Filtreleme için Ortak)
     path('ajax/load-departments/', views.load_departments, name='ajax_load_departments'),

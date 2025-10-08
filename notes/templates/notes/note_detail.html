@@ -80,9 +80,14 @@
           <small>👤 Yükleyen: <b>{{ note.uploader.username }}</b></small><br>
           <small>📅 Tarih: {{ note.upload_date|date:"d M Y" }}</small>
         </div>
+          {% if note.uploader == request.user %}
+            <a href="{% url 'delete_note' pk=note.pk %}" class="btn btn-danger">Sil</a>
+
+            <a href="{% url 'edit_note' pk=note.pk %}" class="btn btn-warning">Düzenle</a>
+        {% endif %}
         <a href="{% url 'download_note' pk=note.pk %}" class="btn btn-lg btn-success">
-    <i class="fas fa-download me-2"></i> Dosyayı İndir
-</a>
+            <i class="fas fa-download me-2"></i> Dosyayı İndir
+        </a>
       </div>
 
       <div class="back-links">
