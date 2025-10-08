@@ -1,0 +1,182 @@
+{% extends "notes/base.html" %}
+{% block title %}Notları Keşfet{% endblock %}
+
+{% block content %}
+<style>
+  body{background:#f4f6fa;}
+  .layout{display:flex;min-height:100vh;}
+  .sidebar{
+    width:240px;background:linear-gradient(180deg,#00205B,#001540);
+    color:#fff;display:flex;flex-direction:column;justify-content:space-between;
+    padding:1.5rem 1rem;position:fixed;left:0;top:0;bottom:0;transition:transform .3s;
+  }
+  .sidebar h3{font-size:1.1rem;text-align:center;margin-bottom:2rem;}
+  .sidebar a{color:#fff;text-decoration:none;display:block;padding:.6rem 1rem;
+    border-radius:.5rem;margin-bottom:.3rem;transition:background .2s;}
+  .sidebar a:hover,.sidebar a.active{background:rgba(255,255,255,.15);}
+  .sidebar-footer small{color:#ccc;text-align:center;display:block;}
+  .main-content{flex:1;margin-left:240px;padding:2rem 2.5rem;}
+  @media(max-width:992px){.sidebar{transform:translateX(-100%);}
+    .sidebar.show{transform:translateX(0);}
+    .main-content{margin-left:0;padding:1.5rem;}
+    .toggle-btn{display:block;}}
+  .toggle-btn{
+    position:fixed;top:15px;left:15px;background:#00205B;color:#fff;border:none;
+    border-radius:6px;padding:.5rem .7rem;z-index:1000;cursor:pointer;display:none;
+  }
+
+  /* === SEARCH + FILTER === */
+  .discover-header{display:flex;justify-content:space-between;align-items:center;
+    flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;}
+  .discover-header h2{font-weight:700;color:#00205B;margin:0;}
+  .search-box{display:flex;gap:.5rem;align-items:center;background:#fff;
+    padding:.5rem 1rem;border-radius:50px;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+  .search-box input{border:none;outline:none;flex:1;min-width:180px;}
+  .search-box button{border:none;background:#00205B;color:#fff;border-radius:50px;
+    padding:.4rem 1rem;font-weight:600;}
+
+  /* === FILTER PANEL === */
+  .filter-card{
+    background:#fff;border-radius:16px;box-shadow:0 4px 15px rgba(0,0,0,.07);
+    padding:1rem 1.5rem;margin-bottom:1.5rem;
+  }
+  label{font-weight:600;color:#00205B;}
+  select{width:100%;padding:.5rem .75rem;border:1px solid #d1d5db;
+    border-radius:8px;background:#fff;font-size:.9rem;}
+  .btn-primary{background:#00205B;border:none;border-radius:8px;padding:.5rem 1rem;}
+
+  /* === NOTE GRID === */
+  .note-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+    gap:1.25rem;}
+  .note-card{background:#fff;border-radius:16px;padding:1.25rem;cursor:pointer;
+    box-shadow:0 4px 15px rgba(0,0,0,.07);transition:transform .2s,box-shadow .2s;}
+  .note-card:hover{transform:translateY(-4px);box-shadow:0 8px 22px rgba(0,0,0,.12);}
+  .note-title{font-size:1.1rem;font-weight:600;color:#00205B;margin-bottom:.5rem;}
+  .note-desc{font-size:.9rem;color:#6b7280;margin-bottom:1rem;min-height:2.5rem;}
+  .note-meta{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem;}
+  .note-meta span{background:#f3f4f6;color:#374151;padding:.3rem .6rem;border-radius:6px;font-size:.8rem;}
+  .note-footer{display:flex;justify-content:space-between;align-items:center;}
+  .note-footer small{color:#6b7280;}
+  .btn-download{background:#10B981;color:#fff;border:none;padding:.4rem .9rem;border-radius:8px;font-size:.85rem;}
+  .empty-state{text-align:center;padding:3rem 1rem;color:#6b7280;}
+</style>
+
+<button class="toggle-btn" id="toggleSidebar">☰</button>
+
+<div class="layout">
+  <div class="sidebar" id="sidebar">
+    <div>
+      <h3>📚 UniEduNote</h3>
+      <a href="{% url 'dashboard' %}">🏠 Ana Sayfa</a>
+      <a href="{% url 'note_list' %}" class="active">🔍 Notları Keşfet</a>
+      <a href="{% url 'upload_note' %}">⬆️ Not Yükle</a>
+    </div>
+    <div class="sidebar-footer"><small>© 2025 UniEduNote</small></div>
+  </div>
+
+  <div class="main-content">
+    <div class="discover-header">
+      <h2>🎓 {{ note_count }} Adet Not Bulundu</h2>
+      <form method="GET" class="search-box">
+        <input type="text" name="q" placeholder="Ders, üniversite ya da başlık ara..." value="{{ current_search_query }}">
+        <button type="submit">Ara</button>
+      </form>
+    </div>
+
+    <div class="filter-card">
+      <form method="GET" id="filter-form">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-4">
+            <label for="filter_university">Üniversite</label>
+            {{ filter_form.university }}
+          </div>
+          <div class="col-md-4">
+            <label for="filter_department">Bölüm</label>
+            {{ filter_form.department }}
+          </div>
+          <div class="col-md-3">
+            <label for="filter_semester">Dönem</label>
+            {{ filter_form.semester }}
+          </div>
+          <div class="col-md-1">
+            <button type="submit" class="btn btn-primary w-100">Filtrele</button>
+          </div>
+        </div>
+        {% if current_search_query %}
+          <input type="hidden" name="q" value="{{ current_search_query }}">
+        {% endif %}
+      </form>
+    </div>
+
+    {% if notes %}
+    <div class="note-grid">
+      {% for note in notes %}
+      <div class="note-card" onclick="window.location.href='{% url 'note_detail' note.id %}'">
+        <div class="note-title">{{ note.title }}</div>
+        <div class="note-desc">{{ note.description|truncatechars:90 }}</div>
+        <div class="note-meta">
+          <span>{{ note.course.code }}</span>
+          <span>{{ note.course.name }}</span>
+          <span>{{ note.course.semester.department.university.name }}</span>
+          <span>{{ note.course.semester.department.name }}</span>
+        </div>
+        <div class="note-footer">
+  <small>{{ note.uploader.username }} • {{ note.upload_date|date:"d M Y" }}</small>
+
+  <a href="{% url 'download_note' pk=note.pk %}" class="btn-download">
+      İndir
+  </a>
+  </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <h4>Henüz hiç not yüklenmedi</h4>
+      <p>Filtreleri sıfırlayabilir veya yeni not yükleyebilirsin.</p>
+      <a href="{% url 'upload_note' %}" class="btn btn-primary mt-2">Not Yükle</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  const toggleBtn=document.getElementById('toggleSidebar');
+  const sidebar=document.getElementById('sidebar');
+  toggleBtn.addEventListener('click',()=>sidebar.classList.toggle('show'));
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function(){
+  $("#filter_university").change(function(){
+    var id=$(this).val(),dep=$("#filter_department"),sem=$("#filter_semester");
+    if(id){
+      $.ajax({url:"{% url 'ajax_load_departments' %}",data:{'university_id':id},dataType:'json',
+        success:function(data){
+          dep.empty().append('<option value="">Tüm Bölümler</option>');
+          sem.empty().append('<option value="">Tüm Dönemler</option>');
+          $.each(data,function(k,v){dep.append('<option value="'+v.id+'">'+v.name+'</option>');});
+          $("#filter-form").submit();
+        }});
+    }else{dep.empty().append('<option value="">Tüm Bölümler</option>');
+      sem.empty().append('<option value="">Tüm Dönemler</option>');$("#filter-form").submit();}
+  });
+
+  $("#filter_department").change(function(){
+    var id=$(this).val(),sem=$("#filter_semester");
+    if(id){
+      $.ajax({url:"{% url 'ajax_load_semesters' %}",data:{'department_id':id},dataType:'json',
+        success:function(data){
+          sem.empty().append('<option value="">Tüm Dönemler</option>');
+          $.each(data,function(k,v){sem.append('<option value="'+v.id+'">'+v.name+'</option>');});
+          $("#filter-form").submit();
+        }});
+    }else{sem.empty().append('<option value="">Tüm Dönemler</option>');$("#filter-form").submit();}
+  });
+
+  $("#filter_semester").change(function(){$("#filter-form").submit();});
+});
+</script>
+{% endblock %}

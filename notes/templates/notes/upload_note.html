@@ -1,0 +1,217 @@
+{% extends "notes/base.html" %}
+{% block title %}Yeni Not Yükle{% endblock %}
+
+{% block content %}
+<style>
+  body { background:#f4f6fa; overflow-x:hidden; }
+  .layout { display:flex; min-height:100vh; }
+
+  /* === SIDEBAR === */
+  .sidebar {
+    width:240px; background:linear-gradient(180deg,#00205B,#001540);
+    color:#fff; display:flex; flex-direction:column; justify-content:space-between;
+    padding:1.5rem 1rem; position:fixed; left:0; top:0; bottom:0;
+    transition:transform .3s ease;
+  }
+  .sidebar h3 { font-size:1.1rem; font-weight:700; text-align:center; margin-bottom:2rem; }
+  .sidebar a {
+    color:#fff; text-decoration:none; display:block;
+    padding:.6rem 1rem; border-radius:.5rem; margin-bottom:.3rem;
+    transition:background .2s;
+  }
+  .sidebar a:hover, .sidebar a.active { background:rgba(255,255,255,.15); }
+  .sidebar-footer small { color:#ccc; text-align:center; display:block; }
+
+  .main-content { flex:1; margin-left:240px; padding:2rem 2.5rem; transition:margin-left .3s; }
+
+  @media(max-width:992px){
+    .sidebar{ transform:translateX(-100%); }
+    .sidebar.show{ transform:translateX(0); }
+    .main-content{ margin-left:0; padding:1.5rem; }
+    .toggle-btn{ display:block; }
+  }
+
+  .toggle-btn {
+    position:fixed; top:15px; left:15px;
+    background:#00205B; color:#fff; border:none;
+    border-radius:6px; padding:.5rem .7rem; z-index:1000;
+    cursor:pointer; display:none;
+  }
+
+  /* === FORM TASARIM === */
+  .page-wrap{min-height:calc(100vh - 120px)}
+  .card{border:0;border-radius:16px;box-shadow:0 4px 15px rgba(0,0,0,.07);}
+  .card-body{padding:1.5rem 1.75rem}
+  .section-title{font-size:1rem;margin:.25rem 0 .75rem 0;color:#00205B;font-weight:600}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width: 992px){ .form-grid{grid-template-columns:1fr} }
+  form select, form textarea, form input[type="text"], form input[type="file"]{
+    width:100%; padding:.65rem .75rem; border:1px solid #d1d5db; border-radius:8px;
+    background:#fff; font-size:.95rem;
+  }
+  form textarea{min-height:96px; max-height:140px}
+  .btn-lg{
+    padding:.6rem 1.25rem; font-size:1rem; border-radius:.6rem;
+    background:#00205B; border:none; color:#fff; font-weight:600;
+  }
+  .btn-lg:hover{ background:#001b4a; }
+  .sticky-actions{display:flex; gap:.5rem; justify-content:flex-end; margin-top:1rem}
+</style>
+
+<button class="toggle-btn" id="toggleSidebar">☰</button>
+
+<div class="layout">
+  <div class="sidebar" id="sidebar">
+    <div>
+      <h3>📚 UniEduNote</h3>
+      <a href="{% url 'dashboard' %}">🏠 Ana Sayfa</a>
+      <a href="{% url 'note_list' %}">🔍 Notları Keşfet</a>
+      <a href="{% url 'upload_note' %}" class="active">⬆️ Not Yükle</a>
+    </div>
+    <div class="sidebar-footer">
+      <small>© 2025 UniEduNote</small>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="container py-3 page-wrap d-flex align-items-start">
+      <div class="row justify-content-center w-100">
+        <div class="col-xl-8 col-lg-9">
+          <h2 class="mb-3 fw-semibold text-primary">Yeni Not Yükle</h2>
+
+          <div class="card">
+            <div class="card-body">
+
+              <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="section-title">1️⃣ Notun Yerini Seçin</div>
+                <div class="form-grid">
+                  <div>
+                    <label for="{{ form.university.id_for_label }}" class="form-label fw-semibold">{{ form.university.label }}</label>
+                    {{ form.university }}
+                  </div>
+                  <div>
+                    <label for="{{ form.department.id_for_label }}" class="form-label fw-semibold">{{ form.department.label }}</label>
+                    {{ form.department }}
+                  </div>
+                  <div>
+                    <label for="{{ form.semester.id_for_label }}" class="form-label fw-semibold">{{ form.semester.label }}</label>
+                    {{ form.semester }}
+                  </div>
+                </div>
+
+                <div class="section-title mt-3">2️⃣ Not Bilgilerini Girin</div>
+                <div class="form-grid">
+                  <div>
+                    <label for="{{ form.course.id_for_label }}" class="form-label fw-semibold">{{ form.course.label }}</label>
+                    {{ form.course }}
+                  </div>
+                  <div>
+                    <label for="{{ form.title.id_for_label }}" class="form-label fw-semibold">{{ form.title.label }}</label>
+                    {{ form.title }}
+                  </div>
+                  <div style="grid-column:1/-1">
+                    <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold">{{ form.description.label }}</label>
+                    {{ form.description }}
+                  </div>
+                  <div>
+                    <label for="{{ form.file.id_for_label }}" class="form-label fw-semibold">{{ form.file.label }}</label>
+                    {{ form.file }}
+                    <div class="form-text">PDF önerilir. Maks. 25 MB.</div>
+                  </div>
+                </div>
+
+                {% if form.non_field_errors %}
+                  <div class="alert alert-danger mt-3 mb-0">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="sticky-actions">
+                  <button type="submit" class="btn-lg">Notu Yükle ve Paylaş</button>
+                </div>
+              </form>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const toggleBtn = document.getElementById('toggleSidebar');
+  const sidebar = document.getElementById('sidebar');
+  toggleBtn.addEventListener('click',()=> sidebar.classList.toggle('show'));
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  $(document).ready(function() {
+      $("#id_university").change(function () {
+          var universityId = $(this).val();
+          if (universityId) {
+              $.ajax({
+                  url: "{% url 'ajax_load_departments' %}",
+                  data: { 'university_id': universityId },
+                  dataType: 'json',
+                  success: function (data) {
+                      $("#id_department").empty().append('<option value="">--- Bölüm Seçin ---</option>');
+                      $("#id_semester").empty().append('<option value="">--- Dönem Seçin ---</option>');
+                      $("#id_course").empty().append('<option value="">--- Ders Seçin ---</option>');
+                      $.each(data, function (key, value) {
+                          $("#id_department").append('<option value="' + value.id + '">' + value.name + '</option>');
+                      });
+                  }
+              });
+          } else {
+              $("#id_department").empty().append('<option value="">--- Bölüm Seçin ---</option>');
+              $("#id_semester").empty().append('<option value="">--- Dönem Seçin ---</option>');
+              $("#id_course").empty().append('<option value="">--- Ders Seçin ---</option>');
+          }
+      });
+
+      $("#id_department").change(function () {
+          var departmentId = $(this).val();
+          if (departmentId) {
+              $.ajax({
+                  url: "{% url 'ajax_load_semesters' %}",
+                  data: { 'department_id': departmentId },
+                  dataType: 'json',
+                  success: function (data) {
+                      $("#id_semester").empty().append('<option value="">--- Dönem Seçin ---</option>');
+                      $("#id_course").empty().append('<option value="">--- Ders Seçin ---</option>');
+                      $.each(data, function (key, value) {
+                          $("#id_semester").append('<option value="' + value.id + '">' + value.name + '</option>');
+                      });
+                  }
+              });
+          } else {
+              $("#id_semester").empty().append('<option value="">--- Dönem Seçin ---</option>');
+              $("#id_course").empty().append('<option value="">--- Ders Seçin ---</option>');
+          }
+      });
+
+      $("#id_semester").change(function () {
+          var semesterId = $(this).val();
+          if (semesterId) {
+              $.ajax({
+                  url: "{% url 'ajax_load_courses' %}",
+                  data: { 'semester_id': semesterId },
+                  dataType: 'json',
+                  success: function (data) {
+                      $("#id_course").empty().append('<option value="">--- Ders Seçin ---</option>');
+                      $.each(data, function (key, value) {
+                          $("#id_course").append('<option value="' + value.id + '">' + value.name + '</option>');
+                      });
+                  }
+              });
+          } else {
+              $("#id_course").empty().append('<option value="">--- Ders Seçin ---</option>');
+          }
+      });
+  });
+</script>
+{% endblock %}
