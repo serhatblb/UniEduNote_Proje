@@ -1,1 +1,1 @@
-web: gunicorn uniedunote.wsgi --log-file -
+web: gunicorn uniedunote_main.wsgi --log-file -

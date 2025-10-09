@@ -15,7 +15,8 @@ DEBUG = False
 # Yayınladığında: 'myuniedunote.com', 'www.myuniedunote.com' gibi olmalı.
 # Şimdilik '*' ile tüm host'lara izin verebiliriz (Test amaçlı).
 ALLOWED_HOSTS = ['*'] # YAYINDA GÜVENLİK İÇİN LÜTFEN ASIL DOMAIN'İ YAZ!
-
+if 'RENDER_EXTERNAL_HOSTNAME' in os.environ:
+    ALLOWED_HOSTS.append(os.environ['RENDER_EXTERNAL_HOSTNAME'])
 
 # === APPS ===
 INSTALLED_APPS = [
