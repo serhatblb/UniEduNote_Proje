@@ -1,14 +1,16 @@
 {% extends "notes/base.html" %}
-{% block title %}Notları Keşfet{% endblock %}
+{% load static %}  {% block title %}Notları Keşfet{% endblock %}
 
 {% block head %}
 <style>
+  /* CSS'leri buraya taşıdım */
   .page-container { max-width:1280px!important; width:100%!important; }
 </style>
 {% endblock %}
 
 {% block content %}
 <style>
+  /* === Genel CSS === */
   body { background:#f4f6fa; }
 
   /* === ÜST FİLTRE ALANI === */
@@ -98,6 +100,7 @@
     border-radius:8px;
     font-size:.85rem;
     text-decoration:none;
+    cursor:pointer; /* AJAX butonu olduğunu belirtir */
   }
   .empty-state { text-align:center;padding:3rem 1rem;color:#6b7280; }
 </style>
@@ -128,20 +131,25 @@
 {% if notes %}
 <div class="notes-section">
   {% for note in notes %}
-  <div class="note-card" onclick="window.location.href='{% url 'note_detail' note.id %}'">
-    <div class="note-title">{{ note.title }}</div>
-    <div class="note-desc">{{ note.description|truncatechars:90 }}</div>
-    <div class="note-meta">
-      <span>{{ note.course.code }}</span>
-      <span>{{ note.course.name }}</span>
-      <span>{{ note.course.semester.department.university.name }}</span>
-      <span>{{ note.course.semester.department.name }}</span>
+  <div class="note-card">
+    <div onclick="window.location.href='{% url 'note_detail' note.id %}'" style="cursor:pointer; padding-bottom:1rem;">
+        <div class="note-title">{{ note.title }}</div>
+        <div class="note-desc">{{ note.description|truncatechars:90 }}</div>
+        <div class="note-meta">
+          <span>{{ note.course.code }}</span>
+          <span>{{ note.course.name }}</span>
+          <span>{{ note.course.semester.department.university.name }}</span>
+          <span>{{ note.course.semester.department.name }}</span>
+        </div>
     </div>
+
     <div class="note-footer">
-      <small>{{ note.uploader.username }} • {{ note.upload_date|date:"d M Y" }}
-        <span class="ms-2 text-success fw-bold">⬇️ {{ note.download_count }}</span>
+      <small>
+        {{ note.uploader.username }} • {{ note.upload_date|date:"d M Y" }}
+        ⬇️ <span class="download-counter-{{ note.pk }}">{{ note.download_count }}</span> İndirme
       </small>
-      <a href="{% url 'download_note' pk=note.pk %}" class="btn-download">İndir</a>
+
+      <a href="#" class="btn-download" data-pk="{{ note.pk }}">İndir</a>
     </div>
   </div>
   {% endfor %}
@@ -157,40 +165,71 @@
 
 {% block scripts %}
 <script>
-$(document).ready(function(){
-  $("#filter_university").change(function(){
-    var id=$(this).val(),dep=$("#filter_department"),sem=$("#filter_semester");
-    if(id){
-      $.ajax({
-        url:"{% url 'ajax_load_departments' %}",
-        data:{'university_id':id},dataType:'json',
-        success:function(data){
-          dep.empty().append('<option value="">Tüm Bölümler</option>');
-          sem.empty().append('<option value="">Tüm Dönemler</option>');
-          $.each(data,function(k,v){ dep.append('<option value="'+v.id+'">'+v.name+'</option>'); });
-        }
-      });
-    } else {
-      dep.empty().append('<option value="">Tüm Bölümler</option>');
-      sem.empty().append('<option value="">Tüm Dönemler</option>');
-    }
-  });
+    document.addEventListener('DOMContentLoaded', function() {
+        const downloadButtons = document.querySelectorAll('.btn-download');
 
-  $("#filter_department").change(function(){
-    var id=$(this).val(),sem=$("#filter_semester");
-    if(id){
-      $.ajax({
-        url:"{% url 'ajax_load_semesters' %}",
-        data:{'department_id':id},dataType:'json',
-        success:function(data){
-          sem.empty().append('<option value="">Tüm Dönemler</option>');
-          $.each(data,function(k,v){ sem.append('<option value="'+v.id+'">'+v.name+'</option>'); });
+        downloadButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault(); // Varsayılan link davranışını durdur
+
+                // Eğer kullanıcı giriş yapmadıysa login'e yönlendir
+                {% if not user.is_authenticated %}
+                    alert("İndirme işlemi için lütfen önce giriş yapınız.");
+                    window.location.href = "{% url 'login' %}";
+                    return;
+                {% endif %}
+
+                const noteId = this.dataset.pk;
+
+                // 1. AJAX: Sayacı artır
+                updateCount(noteId).then(response => {
+                    if (response.success) {
+                        // 2. Sayfa üzerindeki sayacı anında güncelle
+                        const counterElement = document.querySelector(`.download-counter-${noteId}`);
+                        if (counterElement) {
+                            // Sadece sayıyı güncellemek için textContent kullandık
+                            counterElement.textContent = response.new_count;
+                        }
+
+                        // 3. Dosyayı indir
+                        downloadFile(noteId);
+                    } else {
+                        console.error('Sayaç güncellenemedi:', response.error);
+                        downloadFile(noteId);
+                    }
+                }).catch(error => {
+                    console.error('AJAX/Ağ hatası:', error);
+                    downloadFile(noteId);
+                });
+            });
+        });
+
+        // AJAX fonksiyonu (Sayacı günceller)
+        function updateCount(noteId) {
+            // Django URL'lerini JS içinde kullanmak için trick
+            const url = `{% url 'update_download_count' pk=0 %}`.replace('0', noteId);
+            // Ana şablonda olması gereken CSRF token'ı çeker
+            const csrftoken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
+
+            return fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest', // Django'ya AJAX olduğunu bildirir
+                    'X-CSRFToken': csrftoken,
+                },
+            }).then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            });
         }
-      });
-    } else {
-      sem.empty().append('<option value="">Tüm Dönemler</option>');
-    }
-  });
-});
+
+        // Dosya indirme fonksiyonu (Dosyayı indirir)
+        function downloadFile(noteId) {
+    const fileUrl = `{% url 'download_file_only' pk=0 %}`.replace('0', noteId);
+    window.location.href = fileUrl; // Bu indirmeyi tetikleyen satır
+}
+    });
 </script>
-{% endblock %}
+{% endblock scripts %}

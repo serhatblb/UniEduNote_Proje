@@ -94,7 +94,7 @@
     background:var(--darkblue);
   }
 
-  /* PROFILE & LOGOUT */
+  /* PROFILE & LOGOUT (Bu kısım artık sidebar'da kullanılmıyor, silinebilir) */
   .sidebar .profile-link, .sidebar .logout-link {
     background:rgba(255,255,255,0.1);
     margin-top:.8rem;
@@ -121,29 +121,25 @@
       <div class="dash-icon">📤</div>
       <h5>Not Yükle</h5>
       <p>Ders notlarını paylaş, diğer öğrencilere destek ol.</p>
-      <a href="{% url 'upload_note' %}">Yüklemeye Başla</a>
-    </div>
+      <a href="{% url 'upload_note' %}">Yüklemeye Başla</a> </div>
 
     <div class="dash-card">
       <div class="dash-icon">🔍</div>
       <h5>Notları Keşfet</h5>
       <p>Binlerce not arasında arama yap, istediğini indir.</p>
-      <a href="{% url 'note_list' %}">Keşfet</a>
-    </div>
+      <a href="{% url 'note_list' %}">Keşfet</a> </div>
 
     <div class="dash-card">
       <div class="dash-icon">👤</div>
       <h5>Profilim</h5>
       <p>Kendi yüklemelerini ve bilgilerini görüntüle.</p>
-      <a href="{% url 'profile' %}">Profili Aç</a>
-    </div>
+      <a href="{% url 'profile' %}">Profili Aç</a> </div>
 
     <div class="dash-card">
       <div class="dash-icon">🚪</div>
       <h5>Çıkış Yap</h5>
       <p>Görüşmek üzere, tekrar bekleriz!</p>
-      <a href="{% url 'logout' %}">Çıkış</a>
-    </div>
+      <a href="{% url 'logout' %}">Çıkış</a> </div>
   </div>
 </div>
 {% endblock %}

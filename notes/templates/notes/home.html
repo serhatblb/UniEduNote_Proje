@@ -1,55 +1,199 @@
 {% extends "notes/base.html" %}
-
-{% block title %}Akademik Paylaşım Platformu{% endblock %}
+{% block title %}UniEduNote | Akademik Paylaşım Platformu{% endblock %}
 
 {% block content %}
+<style>
+  body {
+    background: #f4f6fa;
+  }
 
-    <nav class="navbar navbar-expand-lg navbar-dark px-4">
-        <a class="navbar-brand" href="{% url 'home' %}">🎓 UniEduNote</a>
-        <div class="ms-auto">
-            <a href="#" class="btn btn-outline-light">Giriş Yap</a>
-            <a href="#" class="btn btn-warning">Kayıt Ol</a>
-        </div>
-    </nav>
+  /* === NAVBAR === */
+  .navbar {
+    background: linear-gradient(90deg, #00205B, #001540);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+  .navbar-brand {
+    font-weight: 700;
+    color: #fff !important;
+    font-size: 1.3rem;
+    letter-spacing: .5px;
+  }
+  .navbar .btn {
+    font-weight: 600;
+    border-radius: 50px;
+    padding: .45rem 1.1rem;
+  }
+  .btn-outline-light {
+    border: 2px solid #fff;
+    color: #fff;
+  }
+  .btn-outline-light:hover {
+    background: #fff;
+    color: #00205B;
+  }
+  .btn-warning {
+    background: #fcd34d;
+    color: #001540;
+    border: none;
+  }
+  .btn-warning:hover {
+    background: #fbbf24;
+  }
 
-    <section class="hero">
-        <h1>Bilgiyi Paylaş, Puan Kazan, Topluluğa Katıl</h1>
+  /* === HERO === */
+  .hero {
+    text-align: center;
+    padding: 6rem 1rem 5rem;
+    background: linear-gradient(180deg, #00205B 0%, #001540 100%);
+    color: #fff;
+    border-bottom-left-radius: 50px;
+    border-bottom-right-radius: 50px;
+  }
+  .hero h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1.2rem;
+  }
+  .hero p {
+    max-width: 750px;
+    margin: 0 auto;
+    line-height: 1.6;
+    font-size: 1.05rem;
+    color: #e5e7eb;
+  }
+  .hero .btn-light {
+    font-weight: 600;
+    color: #00205B;
+    border-radius: 50px;
+    padding: .75rem 1.5rem;
+    transition: all .3s ease;
+  }
+  .hero .btn-light:hover {
+    background: #e0e0e0;
+    transform: translateY(-2px);
+  }
+
+  /* === FEATURES === */
+  .features {
+    padding: 5rem 0;
+  }
+  .features h2 {
+    color: #00205B;
+  }
+  .feature-box {
+    text-align: center;
+    background: #fff;
+    border-radius: 20px;
+    padding: 2rem 1.5rem;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .feature-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+  }
+  .feature-box img {
+    margin-bottom: 1rem;
+  }
+  .feature-box h5 {
+    font-weight: 600;
+    margin-bottom: .6rem;
+    color: #001540;
+  }
+  .feature-box p {
+    color: #555;
+    font-size: .95rem;
+  }
+
+  /* === FOOTER === */
+  .footer {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: #6b7280;
+    font-size: .9rem;
+    border-top: 1px solid #e5e7eb;
+    margin-top: 3rem;
+  }
+  .footer a {
+    color: #374151;
+    text-decoration: none;
+  }
+  .footer a:hover {
+    color: #00205B;
+    text-decoration: underline;
+  }
+</style>
+
+<!-- === NAVBAR === -->
+<nav class="navbar navbar-expand-lg navbar-dark px-4">
+  <a class="navbar-brand" href="{% url 'home' %}">🎓 UniEduNote</a>
+  <div class="ms-auto d-flex gap-2">
+    <a href="{% url 'login' %}" class="btn btn-outline-light">Giriş Yap</a>
+    <a href="{% url 'register' %}" class="btn btn-warning">Kayıt Ol</a>
+  </div>
+</nav>
+
+<!-- === HERO === -->
+<section class="hero">
+  <h1>Bilgiyi Paylaş, Puan Kazan, Topluluğa Katıl</h1>
+  <p>
+    UniEduNote, öğrencilerin ders notlarını paylaşabileceği, sınav sorularını tartışabileceği ve katkılarıyla puan kazanabileceği
+    modern bir <strong>akademik paylaşım platformudur</strong>. Katkı sağla, öğren, büyü.
+  </p>
+  <a href="{% url 'note_list' %}" class="btn btn-light btn-lg mt-4">📘 Notları Keşfet</a>
+</section>
+
+<!-- === FEATURES === -->
+<section class="features container">
+  <h2 class="text-center mb-5 fw-bold">Neden UniEduNote?</h2>
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="feature-box">
+        <img src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png" width="60" alt="Not Paylaş">
+        <h5>Not Paylaş</h5>
         <p>
-            UniEduNote, üniversite öğrencilerinin ders notlarını, sınav sorularını ve ödev çözümlerini paylaşabildiği,
-            topluluğa katkı sağladıkça puan ve ödül kazanabildiği modern bir akademik platformdur.
+          Ders notlarını PDF formatında yükle, binlerce öğrenciyle paylaş.
+          Paylaştığın her not, bir arkadaşının öğrenmesine katkı sağlar.
         </p>
-        <a href="#" class="btn btn-light btn-lg mt-4">Keşfetmeye Başla</a>
-    </section>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="feature-box">
+        <img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" width="60" alt="Puan ve Ödül Kazan">
+        <h5>Puan & Ödül Kazan</h5>
+        <p>
+          Paylaşımların beğenildikçe puan topla.
+          Puanlarını rozetlere, avantajlara ve özel içeriklere dönüştür!
+        </p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="feature-box">
+        <img src="https://cdn-icons-png.flaticon.com/512/1077/1077012.png" width="60" alt="Topluluk">
+        <h5>Topluluk</h5>
+        <p>
+          Üniversitenden ve diğer okullardan öğrencilerle iletişime geç.
+          Etkileşim kur, yorum yap, birlikte öğren.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <section class="features container">
-        <h2 class="text-center mb-5 fw-bold">Neden UniEduNote?</h2>
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="feature-box">
-                    <img src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png" width="60" alt="Not">
-                    <h5>Not Paylaş</h5>
-                    <p>Ders notlarını PDF formatında yükle, binlerce öğrenciyle paylaş.</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="feature-box">
-                    <img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" width="60" alt="Puan">
-                    <h5>Puan & Ödül Kazan</h5>
-                    <p>İndirilme, beğeni ve yorumlarla puan topla, ödüller kazan.</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="feature-box">
-                    <img src="https://cdn-icons-png.flaticon.com/512/1077/1077012.png" width="60" alt="Topluluk">
-                    <h5>Topluluk</h5>
-                    <p>Arkadaşlarınla etkileşim kur, akademik paylaşımın bir parçası ol.</p>
-                </div>
-            </div>
-        </div>
-    </section>
+<!-- === CTA (Call to Action) === -->
+<section class="text-center py-5" style="background:#00205B;color:#fff;">
+  <h3 class="fw-bold mb-3">Hazırsan, şimdi sen de paylaşmaya başla!</h3>
+  <p class="text-light mb-4">
+    Ücretsiz hesap oluştur, notlarını yükle, katkılarınla büyüyen bir öğrenci topluluğuna katıl.
+  </p>
+  <a href="{% url 'register' %}" class="btn btn-warning btn-lg me-2">🚀 Kayıt Ol</a>
+  <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">Giriş Yap</a>
+</section>
 
-    <footer class="footer">
-        <p>© 2025 UniEduNote · Tüm hakları saklıdır. | <a href="/admin" class="text-secondary">Admin Paneli</a></p>
-    </footer>
-
+<!-- === FOOTER === -->
+<footer class="footer">
+  <p>© 2025 UniEduNote · Tüm hakları saklıdır. |
+    <a href="/admin">Admin Paneli</a>
+  </p>
+</footer>
 {% endblock %}

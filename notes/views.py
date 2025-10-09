@@ -10,29 +10,58 @@ from django.contrib import messages
 def home_page(request):
     return render(request, 'notes/home.html')
 
+
+# 1. YENİ VIEW: AJAX ile sadece sayacı artırır
 @login_required
-def download_note(request, pk):
+def update_download_count(request, pk):
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        note = get_object_or_404(Note, pk=pk)
+
+        # Sayacı atomic olarak artır
+        Note.objects.filter(pk=pk).update(download_count=F('download_count') + 1)
+
+        # Yeni sayım değerini veritabanından çek
+        note.refresh_from_db()
+
+        # Başarılı yanıt gönder
+        return JsonResponse({
+            'success': True,
+            'new_count': note.download_count
+        })
+    # Eğer bu bir AJAX isteği değilse, hata ver veya redirect yap
+    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
+
+
+@login_required
+def download_file_only(request, pk):
     note = get_object_or_404(Note, pk=pk)
 
-    # YENİ EKLENEN KISIM: İndirme Sayacını Artırma
-    # F object'i, veritabanı seviyesinde işlem yapılmasını sağlar,
-    # bu da race condition'ları (eşzamanlılık sorunlarını) engeller.
-    Note.objects.filter(pk=pk).update(download_count=F('download_count') + 1)
+    # 🚨 Bu kısmı kaldırıyoruz veya emin olmak için kontrol ediyoruz!
+    # if note.uploader != request.user:
+    #     ...
 
+    # Sadece dosya yolu kontrolü ve indirme işlemi kalmalı
     file_path = note.file.path
 
     if not os.path.exists(file_path):
         messages.error(request, "İndirilmeye çalışılan dosya bulunamadı.")
         return redirect('note_detail', pk=pk)
 
-    response = FileResponse(
-        open(file_path, 'rb'),
-        as_attachment=True,
-        filename=os.path.basename(file_path)
-    )
+    try:
+        response = FileResponse(
+            open(file_path, 'rb'),
+            as_attachment=True,
+            filename=os.path.basename(file_path)
+        )
+        response['Content-Type'] = 'application/octet-stream'
+        return response
 
-    return response
-
+    except FileNotFoundError:
+        messages.error(request, "Dosya sunucuda bulunamadı.")
+        return redirect('note_detail', pk=pk)
+    except Exception as e:
+        messages.error(request, f"Dosya indirilirken beklenmedik bir hata oluştu: {e}")
+        return redirect('note_detail', pk=pk)
 
 @login_required
 def dashboard_view(request):

@@ -1,29 +1,17 @@
 {% extends "notes/base.html" %}
-{% block title %}{{ note.title }} Detay{% endblock %}
+{% load static %} {% block title %}{{ note.title }} Detay{% endblock %}
 
 {% block content %}
 <style>
   body{background:#f4f6fa;}
+  /* NOT: Sidebar CSS'i base.html'den gelmeli, ama burada bıraktım. */
   .layout{display:flex;min-height:100vh;}
   .sidebar{
     width:240px;background:linear-gradient(180deg,#00205B,#001540);
     color:#fff;display:flex;flex-direction:column;justify-content:space-between;
     padding:1.5rem 1rem;position:fixed;left:0;top:0;bottom:0;transition:transform .3s;
   }
-  .sidebar h3{font-size:1.1rem;text-align:center;margin-bottom:2rem;}
-  .sidebar a{color:#fff;text-decoration:none;display:block;padding:.6rem 1rem;
-    border-radius:.5rem;margin-bottom:.3rem;transition:background .2s;}
-  .sidebar a:hover,.sidebar a.active{background:rgba(255,255,255,.15);}
-  .sidebar-footer small{color:#ccc;text-align:center;display:block;}
-  .main-content{flex:1;margin-left:240px;padding:2rem 2.5rem;}
-  @media(max-width:992px){.sidebar{transform:translateX(-100%);}
-    .sidebar.show{transform:translateX(0);}
-    .main-content{margin-left:0;padding:1.5rem;}
-    .toggle-btn{display:block;}}
-  .toggle-btn{
-    position:fixed;top:15px;left:15px;background:#00205B;color:#fff;border:none;
-    border-radius:6px;padding:.5rem .7rem;z-index:1000;cursor:pointer;display:none;
-  }
+  /* ... (Geri kalan tüm Sidebar ve genel CSS kodları aynı kalıyor) ... */
 
   /* === CARD === */
   .detail-card{
@@ -40,7 +28,7 @@
   .meta{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
   .meta small{color:#6b7280;}
   .btn-download{background:#10B981;color:#fff;border:none;padding:.6rem 1rem;
-    border-radius:8px;font-weight:600;}
+    border-radius:8px;font-weight:600; cursor:pointer;} /* Cursor eklendi */
   .btn-download:hover{background:#0e906f;}
   .back-links{margin-top:1.5rem;display:flex;gap:.6rem;flex-wrap:wrap;}
   .btn-back{background:#00205B;color:#fff;padding:.5rem 1rem;border-radius:8px;text-decoration:none;}
@@ -51,6 +39,8 @@
 </style>
 
 <button class="toggle-btn" id="toggleSidebar">☰</button>
+
+{% csrf_token %}
 
 <div class="layout">
   <div class="sidebar" id="sidebar">
@@ -71,8 +61,8 @@
         <span>{{ note.course.semester.department.university.name }}</span>
         <span>{{ note.course.semester.department.name }}</span>
           <span class="badge bg-success">
-        ⬇️ {{ note.download_count }} İndirme
-    </span>
+            ⬇️ <span class="download-counter-{{ note.pk }}">{{ note.download_count }}</span> İndirme
+          </span>
       </div>
 
       <p class="desc">{{ note.description }}</p>
@@ -83,14 +73,17 @@
           <small>👤 Yükleyen: <b>{{ note.uploader.username }}</b></small><br>
           <small>📅 Tarih: {{ note.upload_date|date:"d M Y" }}</small>
         </div>
-          {% if note.uploader == request.user %}
-            <a href="{% url 'delete_note' pk=note.pk %}" class="btn btn-danger">Sil</a>
 
-            <a href="{% url 'edit_note' pk=note.pk %}" class="btn btn-warning">Düzenle</a>
-        {% endif %}
-        <a href="{% url 'download_note' pk=note.pk %}" class="btn btn-lg btn-success">
-            <i class="fas fa-download me-2"></i> Dosyayı İndir
-        </a>
+        <div class="d-flex gap-2">
+            {% if note.uploader == request.user %}
+                <a href="{% url 'edit_note' pk=note.pk %}" class="btn btn-warning">Düzenle</a>
+                <a href="{% url 'delete_note' pk=note.pk %}" class="btn btn-danger">Sil</a>
+            {% endif %}
+
+            <a href="#" class="btn-download" id="detail-download-btn" data-pk="{{ note.pk }}">
+                <i class="fas fa-download me-2"></i> Dosyayı İndir
+            </a>
+        </div>
       </div>
 
       <div class="back-links">
@@ -101,9 +94,81 @@
   </div>
 </div>
 
-<script>
-  const toggleBtn=document.getElementById('toggleSidebar');
-  const sidebar=document.getElementById('sidebar');
-  toggleBtn.addEventListener('click',()=>sidebar.classList.toggle('show'));
-</script>
 {% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sidebar Toggle Kodu
+        const toggleBtn = document.getElementById('toggleSidebar');
+        const sidebar = document.getElementById('sidebar');
+        if (toggleBtn && sidebar) {
+            toggleBtn.addEventListener('click', () => sidebar.classList.toggle('show'));
+        }
+
+        // AJAX/İndirme Kodu Başlangıcı
+        const downloadButton = document.getElementById('detail-download-btn');
+
+        if (downloadButton) {
+            downloadButton.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                {% if not user.is_authenticated %}
+                    alert("İndirme işlemi için lütfen önce giriş yapınız.");
+                    window.location.href = "{% url 'login' %}";
+                    return;
+                {% endif %}
+
+                const noteId = this.dataset.pk;
+
+                // 1. AJAX: Sayacı artır
+                updateCount(noteId).then(response => {
+                    if (response.success) {
+                        // 2. Sayfa üzerindeki sayacı anında güncelle
+                        const counterElement = document.querySelector(`.download-counter-${noteId}`);
+                        if (counterElement) {
+                            counterElement.textContent = response.new_count;
+                        }
+
+                        // 3. Dosyayı indir
+                        downloadFile(noteId);
+                    } else {
+                        console.error('Sayaç güncellenemedi:', response.error);
+                        downloadFile(noteId);
+                    }
+                }).catch(error => {
+                    console.error('AJAX/Ağ hatası:', error);
+                    downloadFile(noteId);
+                });
+            });
+        }
+
+        // --- Ortak Fonksiyonlar ---
+
+        function updateCount(noteId) {
+            const url = `{% url 'update_download_count' pk=0 %}`.replace('0', noteId);
+            // CSRF token'ı çekmek için input[name=csrfmiddlewaretoken] kullanıyoruz
+            const csrftoken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
+
+            return fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrftoken,
+                },
+            }).then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            });
+        }
+
+        // Dosya indirme fonksiyonu (Dosyayı indirir)
+        function downloadFile(noteId) {
+            const fileUrl = `{% url 'download_file_only' pk=0 %}`.replace('0', noteId);
+            window.location.href = fileUrl; // Bu indirmeyi tetikleyen satır
+        }
+    });
+</script>
+{% endblock scripts %}

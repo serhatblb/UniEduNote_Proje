@@ -1,10 +1,21 @@
 from pathlib import Path
+import os # os modülünü ekledik!
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# 🚨 GÜVENLİK AYARLARI 🚨
+
+# SECRET_KEY'i gizli tutmalısın. Üretimde bu değer ortam değişkenlerinden gelmeli!
 SECRET_KEY = 'django-insecure-!!)u=h9!cyf_eips%#8&o(yp5dw9iy5=zb28+ldb&qe*-is0-6'
-DEBUG = True
-ALLOWED_HOSTS = []
+
+# 1. KRİTİK: Güvenlik için False yapıldı!
+DEBUG = False
+
+# 2. KRİTİK: Uygulamanın çalışacağı domain'leri buraya ekle.
+# Yayınladığında: 'myuniedunote.com', 'www.myuniedunote.com' gibi olmalı.
+# Şimdilik '*' ile tüm host'lara izin verebiliriz (Test amaçlı).
+ALLOWED_HOSTS = ['*'] # YAYINDA GÜVENLİK İÇİN LÜTFEN ASIL DOMAIN'İ YAZ!
+
 
 # === APPS ===
 INSTALLED_APPS = [
@@ -16,11 +27,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'notes',
     'users',
+    'widget_tweaks',
 ]
 
 # === MIDDLEWARE ===
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Diğer middleware'ler...
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -35,7 +48,6 @@ ROOT_URLCONF = 'uniedunote_main.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # Burada ana templates klasörünü ekledik 👇
         'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -74,11 +86,17 @@ USE_TZ = True
 
 # === STATIC FILES ===
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']  # (Eğer static klasörün varsa)
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
-# === MEDIA FILES (Eğer dosya yükleme yapıyorsan) ===
+# 3. KRİTİK: Üretim ortamında statik dosyaların toplanacağı yer.
+# `python manage.py collectstatic` çalıştırıldığında bu klasör oluşur.
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+
+# === MEDIA FILES (Yüklenen dosyalar) ===
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# os.path.join kullanıldı, Path yerine (daha geniş uyumluluk için)
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # === DEFAULT PRIMARY KEY FIELD TYPE ===
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -87,3 +105,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'home'
+
+# E-POSTA AYARLARI (Parola sıfırlama için)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'support@uniedunote.com'

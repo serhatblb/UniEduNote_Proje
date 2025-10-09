@@ -1,28 +1,28 @@
 {% extends "notes/base.html" %}
-{% block title %}Giriş Yap | UniEduNote{% endblock %}
+{% block title %}Kayıt Ol | UniEduNote{% endblock %}
 
 {% block content %}
 <style>
   body {
     background: #f4f6fa;
   }
-  .login-wrapper {
+  .register-wrapper {
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 2rem 1rem;
   }
-  .login-card {
+  .register-card {
     background: #fff;
     border-radius: 20px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.08);
     width: 100%;
-    max-width: 420px;
+    max-width: 440px;
     padding: 2.5rem 2rem;
     text-align: center;
   }
-  .login-card h3 {
+  .register-card h3 {
     font-weight: 700;
     color: #00205B;
     margin-bottom: 1.5rem;
@@ -44,7 +44,7 @@
     border-color: #00205B;
     box-shadow: 0 0 0 3px rgba(0,32,91,.15);
   }
-  .btn-login {
+  .btn-register {
     background: #00205B;
     color: #fff;
     border: none;
@@ -54,33 +54,33 @@
     font-size: 1rem;
     transition: background .3s;
   }
-  .btn-login:hover {
+  .btn-register:hover {
     background: #001b4a;
   }
   .alert {
     font-size: .9rem;
   }
-  .back-home {
+  .login-link {
     margin-top: 1.25rem;
     font-size: .9rem;
   }
-  .back-home a {
+  .login-link a {
     color: #00205B;
     font-weight: 600;
     text-decoration: none;
   }
-  .back-home a:hover {
+  .login-link a:hover {
     text-decoration: underline;
   }
 </style>
 
-<div class="login-wrapper">
-  <div class="login-card">
-    <h3>🔐 Giriş Yap</h3>
+<div class="register-wrapper">
+  <div class="register-card">
+    <h3>🧑‍🎓 Hesap Oluştur</h3>
 
     {% if form.errors %}
       <div class="alert alert-danger text-start mb-3">
-        ⚠️ Kullanıcı adı veya şifre hatalı.
+        ⚠️ Lütfen formu kontrol edin. Bazı alanlar hatalı olabilir.
       </div>
     {% endif %}
 
@@ -91,21 +91,29 @@
         {{ form.username }}
       </div>
 
-      <div class="mb-4 text-start">
-        <label for="id_password" class="form-label">Şifre</label>
-        {{ form.password }}
+      <div class="mb-3 text-start">
+        <label for="id_email" class="form-label">E-posta (isteğe bağlı)</label>
+        {{ form.email }}
       </div>
 
-      <button type="submit" class="btn btn-login w-100">
-        🚀 Giriş Yap
+      <div class="mb-3 text-start">
+        <label for="id_password1" class="form-label">Şifre</label>
+        {{ form.password1 }}
+      </div>
+
+      <div class="mb-4 text-start">
+        <label for="id_password2" class="form-label">Şifre (Tekrar)</label>
+        {{ form.password2 }}
+      </div>
+
+      <button type="submit" class="btn btn-register w-100">
+        🚀 Kayıt Ol
       </button>
     </form>
 
-    <div class="back-home">
-      <p class="mb-1">Henüz hesabın yok mu?
-        <a href="{% url 'register' %}">Kayıt Ol</a>
-      </p>
-      <a href="{% url 'home' %}">← Ana Sayfaya Dön</a>
+    <div class="login-link">
+      Zaten bir hesabın var mı?
+      <a href="{% url 'login' %}">Giriş Yap</a>
     </div>
   </div>
 </div>
