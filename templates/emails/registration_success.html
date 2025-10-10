@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kayıt Başarılı</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; border: 1px solid #ddd; padding: 20px;">
+        <h2 style="color: #00205B;">UniEduNote'a Hoş Geldin!</h2>
+        <p>Merhaba {{ user.username }},</p>
+        <p>UniEduNote topluluğuna başarıyla katıldın!</p>
+        <p>Artık not yükleyebilir, indirebilir ve bilgi paylaşımına başlayabilirsin.</p>
+
+        <div style="text-align: center; margin: 20px 0;">
+            <a href="https://{{ request.get_host }}{% url 'login' %}"
+               style="display: inline-block; padding: 10px 20px; background-color: #10B981; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                Giriş Yap
+            </a>
+        </div>
+
+        <p>İyi paylaşımlar dileriz!</p>
+        <small style="color: #999;">Bu e-posta otomatik olarak gönderilmiştir. Lütfen yanıtlamayınız.</small>
+    </div>
+</body>
+</html>

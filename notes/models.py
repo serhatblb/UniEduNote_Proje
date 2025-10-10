@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings  # 🔹 AUTH_USER_MODEL için
 from django.utils import timezone
 
 
@@ -30,7 +30,6 @@ class Semester(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.department.name}"
-        return f"{self.name} - {self.department.name}"
 
 
 class Course(models.Model):
@@ -49,12 +48,10 @@ class Note(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(default="", blank=True)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    uploader = models.ForeignKey(User, on_delete=models.CASCADE)
+    uploader = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # 🔹 düzeltildi
     file = models.FileField(upload_to='notes_files/%Y/%m/%d/')
     upload_date = models.DateTimeField(default=timezone.now)
-
     download_count = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return f"{self.title} - {self.course.code}"
-

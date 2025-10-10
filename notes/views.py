@@ -2,11 +2,17 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.db.models import Q,F
+
+from users.forms import CustomUserCreationForm
 from .models import Note, Department, Semester, Course, University
 from .forms import NoteUploadForm, NoteFilterForm
 from django.http import JsonResponse, FileResponse # FileResponse'u ekle
 import os #
 from django.contrib import messages
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+
 def home_page(request):
     return render(request, 'notes/home.html')
 
@@ -79,6 +85,34 @@ def dashboard_view(request):
     return render(request, 'notes/dashboard.html', context)
 
 
+def register(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+
+            # 🚨 YENİ KOD: E-posta Gönderimi
+            subject = 'UniEduNote Hesabınız Oluşturuldu!'
+            html_message = render_to_string('emails/registration_success.html', {'user': user})
+            plain_message = strip_tags(html_message)
+            from_email = 'no-reply@uniedunote.com'  # settings.py'deki DEFAULT_FROM_EMAIL ile aynı olmalı
+            to = user.email
+
+            try:
+                send_mail(subject, plain_message, from_email, [to], html_message=html_message)
+                messages.success(request, 'Başarıyla kayıt oldunuz ve e-posta onayı gönderildi.')
+            except Exception as e:
+                # E-posta gönderme başarısız olursa bile kullanıcıyı kaydetmeye devam et
+                messages.error(request, 'Kayıt başarılı ancak e-posta gönderilemedi. Destekle iletişime geçin.')
+                print(f"E-posta gönderme hatası: {e}")
+
+            return redirect('login')
+    else:
+        form = CustomUserCreationForm()
+    return render(request, 'registration/register.html', {'form': form})
+
+
+# 🚨 Hatırlatma: Yeni bir template oluşturman gerekecek: templates/emails/registration_success.html
 
 @login_required
 def delete_note(request, pk):
@@ -220,6 +254,7 @@ def upload_note(request):
 
 
 # --- NOT LİSTELEME VE FİLTRELEME GÖRÜNÜMÜ ---
+@login_required
 def note_list_view(request):
     form = NoteFilterForm(request.GET)
     notes_queryset = Note.objects.all().select_related(
@@ -275,6 +310,7 @@ def note_list_view(request):
 
 
 # --- NOT DETAY GÖRÜNÜMÜ ---
+@login_required
 def note_detail_view(request, pk):
     note = get_object_or_404(
         Note.objects.select_related('course__semester__department__university', 'uploader'),

@@ -108,5 +108,13 @@ LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'home'
 
 # E-POSTA AYARLARI (Parola sıfırlama için)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'support@uniedunote.com'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.sendgrid.net' # Veya kendi SMTP sunucun
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get('SENDGRID_USERNAME') # Render'da Ortam Değişkeni olarak ayarla
+EMAIL_HOST_PASSWORD = os.environ.get('SENDGRID_API_KEY') # Render'da Ortam Değişkeni olarak ayarla
+DEFAULT_FROM_EMAIL = 'no-reply@uniedunote.com'
+
+
+AUTH_USER_MODEL = 'users.CustomUser'
